@@ -125,6 +125,19 @@ def chat():
 #     if openai_token.expires_on < int(time.time()) - 60:
 #         openai_token = azure_credential.get_token("https://cognitiveservices.azure.com/.default")
 #         openai.api_key = openai_token.token
-    
+from .utils.embedding.transcript import mp4_to_embedding, addEmbeddingToPinecone
+from .utils.openai.gpt3 import detectEmbeddingDiscrepency
+from werkzeug import secure_filename
+@app.route("/processMp4", methods=["POST"])
+async def processMp4():
+    f = request.files['file']
+    f.save(secure_filename(f.filename))
+    embedding = mp4_to_embedding(f.filename)
+
+    output = detectEmbeddingDiscrepency(embedding) #see if the claims in the embedding conflicts with anything
+    addEmbeddingToPinecone(embedding)
+    print(output)
+    return output
+
 if __name__ == "__main__":
     app.run()
