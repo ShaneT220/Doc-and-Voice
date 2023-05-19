@@ -1,101 +1,122 @@
-import { useRef, useState } from "react";
-import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton } from "@fluentui/react";
+import { useRef, useState, useEffect } from "react";
+import { Panel, DefaultButton, Spinner, IconButton } from "@fluentui/react";
+import { Mic48Regular, Mic48Filled } from "@fluentui/react-icons";
 
 import styles from "./OneShot.module.css";
 
-import { askApi, Approaches, AskResponse, AskRequest } from "../../api";
+import { AskResponse, sendAudioToAPI } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
-import { ExampleList } from "../../components/Example";
-import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
+import { AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
-    const [approach, setApproach] = useState<Approaches>(Approaches.RetrieveThenRead);
-    const [promptTemplate, setPromptTemplate] = useState<string>("");
-    const [promptTemplatePrefix, setPromptTemplatePrefix] = useState<string>("");
-    const [promptTemplateSuffix, setPromptTemplateSuffix] = useState<string>("");
-    const [retrieveCount, setRetrieveCount] = useState<number>(3);
-    const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
-    const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
-    const [excludeCategory, setExcludeCategory] = useState<string>("");
-
+    const [isRecording, setIsRecording] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const timeIntervalRef = useRef<number>();
+    const elapsedTimeRef = useRef(0);
+    const audioQueueRef = useRef<Blob[]>([]);
     const lastQuestionRef = useRef<string>("");
-
+    const [queueLength, setQueueLength] = useState(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<unknown>();
     const [answer, setAnswer] = useState<AskResponse>();
-
     const [activeCitation, setActiveCitation] = useState<string>();
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
+    let intervalId: number;
+
+    useEffect(() => {
+        // Listener or useEffect that runs when the queue is populated
+        if (audioQueueRef.current.length > 0) {
+            console.log(audioQueueRef.current)
+            sendNextAudioInQueue();
+        }
+    }, [queueLength]);
 
     const makeApiRequest = async (question: string) => {
-        lastQuestionRef.current = question;
 
-        error && setError(undefined);
-        setIsLoading(true);
-        setActiveCitation(undefined);
-        setActiveAnalysisPanelTab(undefined);
+    };
 
+    const sendNextAudioInQueue = async () => {
+        const audioData = audioQueueRef.current[0];
         try {
-            const request: AskRequest = {
-                question,
-                approach,
-                overrides: {
-                    promptTemplate: promptTemplate.length === 0 ? undefined : promptTemplate,
-                    promptTemplatePrefix: promptTemplatePrefix.length === 0 ? undefined : promptTemplatePrefix,
-                    promptTemplateSuffix: promptTemplateSuffix.length === 0 ? undefined : promptTemplateSuffix,
-                    excludeCategory: excludeCategory.length === 0 ? undefined : excludeCategory,
-                    top: retrieveCount,
-                    semanticRanker: useSemanticRanker,
-                    semanticCaptions: useSemanticCaptions
-                }
-            };
-            const result = await askApi(request);
-            setAnswer(result);
-        } catch (e) {
-            setError(e);
-        } finally {
-            setIsLoading(false);
+            // Send the recorded audio to the API and wait for the promise to resolve
+            await sendAudioToAPI(audioData);
+
+            // Remove the sent audio from the queue
+            audioQueueRef.current.shift();
+            setQueueLength(audioQueueRef.current.length);
+
+            // If there are more audio chunks in the queue, send the next one
+            if (audioQueueRef.current.length > 0) {
+                sendNextAudioInQueue();
+            }
+        } catch (error) {
+            console.error('Failed to send audio to API:', error);
+            // Handle the error, if needed
         }
     };
 
-    const onPromptTemplateChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-        setPromptTemplate(newValue || "");
-    };
+    function timingAudio(){
+        console.log("media recorder start");
+        setIsRecording(true);
+        timeIntervalRef.current = setInterval(() => {
+        elapsedTimeRef.current += 1;
+        console.log("Elapsed time:", elapsedTimeRef.current);
+        if (elapsedTimeRef.current >= 10) {
+            elapsedTimeRef.current = 0
+            addingAudio();
+        }
+        }, 1000);
+    }
 
-    const onPromptTemplatePrefixChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-        setPromptTemplatePrefix(newValue || "");
-    };
+    function addingAudio() {
+        console.log("Hitting adding audio")
+        if(mediaRecorderRef.current){
+            mediaRecorderRef.current.requestData();
+            mediaRecorderRef.current.ondataavailable = (e) => {
+                audioQueueRef.current.push(new Blob([e.data], { type: 'audio/webm' }));
+                setQueueLength(audioQueueRef.current.length);
+            }
+        }
+    }
 
-    const onPromptTemplateSuffixChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-        setPromptTemplateSuffix(newValue || "");
-    };
 
-    const onRetrieveCountChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
-        setRetrieveCount(parseInt(newValue || "3"));
-    };
 
-    const onApproachChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
-        setApproach((option?.key as Approaches) || Approaches.RetrieveThenRead);
-    };
-
-    const onUseSemanticRankerChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-        setUseSemanticRanker(!!checked);
-    };
-
-    const onUseSemanticCaptionsChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-        setUseSemanticCaptions(!!checked);
-    };
-
-    const onExcludeCategoryChanged = (_ev?: React.FormEvent, newValue?: string) => {
-        setExcludeCategory(newValue || "");
-    };
-
-    const onExampleClicked = (example: string) => {
-        makeApiRequest(example);
-    };
+    const startRecording = () => {
+        navigator.mediaDevices
+          .getUserMedia({ audio: true })
+          .then((stream) => {
+            // Create a new MediaRecorder
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+      
+            mediaRecorderRef.current.addEventListener('start', timingAudio);
+      
+            console.log("media recorder start");
+            // Start recording
+            setIsRecording(true);
+            mediaRecorderRef.current.start();
+          })
+          .catch((error) => {
+            console.error('Failed to get user media', error);
+          });
+      };
+      
+      const stopRecording = (): void => {
+        console.log("set to stop");
+        if (mediaRecorderRef.current != null) {
+            console.log("not null in stop")
+            addingAudio()
+            mediaRecorderRef.current.stop();
+            mediaRecorderRef.current.removeEventListener('start', timingAudio)
+            clearInterval(timeIntervalRef.current)
+            elapsedTimeRef.current = 0;
+            setIsRecording(false);
+        }
+      };
+        
 
     const onShowCitation = (citation: string) => {
         if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab) {
@@ -114,37 +135,33 @@ const OneShot = () => {
         }
     };
 
-    const approaches: IChoiceGroupOption[] = [
-        {
-            key: Approaches.RetrieveThenRead,
-            text: "Retrieve-Then-Read"
-        },
-        {
-            key: Approaches.ReadRetrieveRead,
-            text: "Read-Retrieve-Read"
-        },
-        {
-            key: Approaches.ReadDecomposeAsk,
-            text: "Read-Decompose-Ask"
-        }
-    ];
-
     return (
         <div className={styles.oneshotContainer}>
             <div className={styles.oneshotTopSection}>
                 <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                 <h1 className={styles.oneshotTitle}>Ask your data</h1>
-                <div className={styles.oneshotQuestionInput}>
-                    <QuestionInput
-                        placeholder="Example: Does my plan cover annual eye exams?"
-                        disabled={isLoading}
-                        onSend={question => makeApiRequest(question)}
-                    />
+                <div className={styles.oneShotActionLine}>
+                    <div className={styles.oneshotQuestionInput}>
+                        <QuestionInput
+                            placeholder="Example: Does my plan cover annual eye exams?"
+                            disabled={isLoading}
+                            onSend={question => makeApiRequest(question)}
+                        />
+                    </div>
+                    <div className={styles.oneShotMicButton}>
+                        <IconButton onClick={isRecording ? (stopRecording) : (startRecording)}>
+                            { isRecording ? (
+                                <Mic48Filled/>
+                                ):(
+                                <Mic48Regular/>
+                            )}
+                        </IconButton>
+                    </div>
                 </div>
             </div>
             <div className={styles.oneshotBottomSection}>
                 {isLoading && <Spinner label="Generating answer" />}
-                {!lastQuestionRef.current && <ExampleList onExampleClicked={onExampleClicked} />}
+                {/* {!lastQuestionRef.current && <ExampleList onExampleClicked={onExampleClicked} />} */}
                 {!isLoading && answer && !error && (
                     <div className={styles.oneshotAnswerContainer}>
                         <Answer
@@ -160,20 +177,10 @@ const OneShot = () => {
                         <AnswerError error={error.toString()} onRetry={() => makeApiRequest(lastQuestionRef.current)} />
                     </div>
                 ) : null}
-                {activeAnalysisPanelTab && answer && (
-                    <AnalysisPanel
-                        className={styles.oneshotAnalysisPanel}
-                        activeCitation={activeCitation}
-                        onActiveTabChanged={x => onToggleTab(x)}
-                        citationHeight="600px"
-                        answer={answer}
-                        activeTab={activeAnalysisPanelTab}
-                    />
-                )}
             </div>
 
             <Panel
-                headerText="Configure answer generation"
+                headerText="Recording Settings"
                 isOpen={isConfigPanelOpen}
                 isBlocking={false}
                 onDismiss={() => setIsConfigPanelOpen(false)}
@@ -181,68 +188,7 @@ const OneShot = () => {
                 onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
                 isFooterAtBottom={true}
             >
-                <ChoiceGroup
-                    className={styles.oneshotSettingsSeparator}
-                    label="Approach"
-                    options={approaches}
-                    defaultSelectedKey={approach}
-                    onChange={onApproachChange}
-                />
 
-                {(approach === Approaches.RetrieveThenRead || approach === Approaches.ReadDecomposeAsk) && (
-                    <TextField
-                        className={styles.oneshotSettingsSeparator}
-                        defaultValue={promptTemplate}
-                        label="Override prompt template"
-                        multiline
-                        autoAdjustHeight
-                        onChange={onPromptTemplateChange}
-                    />
-                )}
-
-                {approach === Approaches.ReadRetrieveRead && (
-                    <>
-                        <TextField
-                            className={styles.oneshotSettingsSeparator}
-                            defaultValue={promptTemplatePrefix}
-                            label="Override prompt prefix template"
-                            multiline
-                            autoAdjustHeight
-                            onChange={onPromptTemplatePrefixChange}
-                        />
-                        <TextField
-                            className={styles.oneshotSettingsSeparator}
-                            defaultValue={promptTemplateSuffix}
-                            label="Override prompt suffix template"
-                            multiline
-                            autoAdjustHeight
-                            onChange={onPromptTemplateSuffixChange}
-                        />
-                    </>
-                )}
-
-                <SpinButton
-                    className={styles.oneshotSettingsSeparator}
-                    label="Retrieve this many documents from search:"
-                    min={1}
-                    max={50}
-                    defaultValue={retrieveCount.toString()}
-                    onChange={onRetrieveCountChange}
-                />
-                <TextField className={styles.oneshotSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
-                <Checkbox
-                    className={styles.oneshotSettingsSeparator}
-                    checked={useSemanticRanker}
-                    label="Use semantic ranker for retrieval"
-                    onChange={onUseSemanticRankerChange}
-                />
-                <Checkbox
-                    className={styles.oneshotSettingsSeparator}
-                    checked={useSemanticCaptions}
-                    label="Use query-contextual summaries instead of whole documents"
-                    onChange={onUseSemanticCaptionsChange}
-                    disabled={!useSemanticRanker}
-                />
             </Panel>
         </div>
     );

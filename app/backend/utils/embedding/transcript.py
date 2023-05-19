@@ -1,5 +1,5 @@
 import whisper
-from .youtubeDownload import youtube_to_mp4
+from youtubeDownload import youtube_to_mp4
 import tiktoken
 
 model = whisper.load_model('base.en',download_root="./base.en.pt")

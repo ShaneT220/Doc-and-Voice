@@ -13,6 +13,9 @@ from approaches.chatreadretrieveread import ChatReadRetrieveReadApproach
 from azure.storage.blob import BlobServiceClient
 import pinecone
 from decouple import config
+# from utils.embedding.transcript import mp4_to_embedding, addEmbeddingToPinecone
+# from utils.openai.gpt3 import detectEmbeddingDiscrepency
+# from werkzeug import secure_filename
 
 # Replace these with your own values, either in environment variables or directly here
 AZURE_STORAGE_ACCOUNT = os.environ.get("AZURE_STORAGE_ACCOUNT") or config("AZURE_STORAGE_ACCOUNT")
@@ -26,7 +29,7 @@ OPENAI_CHATGPT_DEPLOYMENT = os.environ.get("AZURE_OPENAI_CHATGPT_DEPLOYMENT") or
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY") or config("OPENAI_API_KEY")
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY") or config("PINECONE_API_KEY")
 PINECONE_ENVIORMENT = os.environ.get("PINECONE_ENVIORMENT") or config("PINECONE_ENVIORMENT")
-PINECONE_INDEX = os.environ.get("PINECONE_INDEX") or config("PINECONE_INDEXS")
+PINECONE_INDEX = os.environ.get("PINECONE_INDEX") or config("PINECONE_INDEX")
 
 
 KB_FIELDS_CONTENT = os.environ.get("KB_FIELDS_CONTENT") or "doctype"
@@ -125,19 +128,23 @@ def chat():
 #     if openai_token.expires_on < int(time.time()) - 60:
 #         openai_token = azure_credential.get_token("https://cognitiveservices.azure.com/.default")
 #         openai.api_key = openai_token.token
-from .utils.embedding.transcript import mp4_to_embedding, addEmbeddingToPinecone
-from .utils.openai.gpt3 import detectEmbeddingDiscrepency
-from werkzeug import secure_filename
-@app.route("/processMp4", methods=["POST"])
+@app.route("/processAudio", methods=["POST"])
 async def processMp4():
-    f = request.files['file']
-    f.save(secure_filename(f.filename))
-    embedding = mp4_to_embedding(f.filename)
+    try:
+        audio_data = request.data
+        return jsonify({'message': "Audio received and processed successfully"})
+    except Exception as e:
+        logging.exception("Exception in /processMp4")
+        return jsonify({"error": str(e)}), 500
+    
+    # f = request.files['file']
+    # f.save(secure_filename(f.filename))
+    # embedding = mp4_to_embedding(f.filename)
 
-    output = detectEmbeddingDiscrepency(embedding) #see if the claims in the embedding conflicts with anything
-    addEmbeddingToPinecone(embedding)
-    print(output)
-    return output
+    # output = detectEmbeddingDiscrepency(embedding) #see if the claims in the embedding conflicts with anything
+    # addEmbeddingToPinecone(embedding)
+    # print(output)
+    # return output
 
 if __name__ == "__main__":
     app.run()

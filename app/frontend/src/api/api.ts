@@ -64,3 +64,24 @@ export async function chatApi(options: ChatRequest): Promise<AskResponse> {
 export function getCitationFilePath(citation: string): string {
     return `/content/${citation}`;
 }
+
+export async function sendAudioToAPI(recordedBlob: Blob): Promise<void> {
+    const formData = new FormData();
+    console.log("hitting the api")
+    formData.append('audio', recordedBlob, 'recorded-audio.webm');
+    try {
+        const response = await fetch('/processAudio', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                "Content-Type": "audio/webm"
+            }
+        });
+
+       console.log(response.json())
+        
+    } catch (error) {
+        console.error('Error sending audio', error);
+        throw error;
+    }
+};
