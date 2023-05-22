@@ -7,6 +7,4 @@ azure-storage-blob==12.14.1
 python-decouple
 Werkzeug
 pinecone-client
-git+https://github.com/openai/whisper.git
-ffmpeg -y
 ffmpeg-python

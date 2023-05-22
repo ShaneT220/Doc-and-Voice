@@ -1,5 +1,5 @@
 import whisper
-from youtubeDownload import youtube_to_mp4
+# from youtubeDownload import youtube_to_mp4
 import tiktoken
 
 model = whisper.load_model('base.en',download_root="./base.en.pt")
@@ -10,11 +10,16 @@ def num_tokens_from_string(string: str, encoding_name: str) -> int:
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
-def get_embedding():#TODO
-    return "WIP"
+import openai
+def get_embedding(text):#TODO
+    model = "text-embedding-ada-002"
+    question_vector = openai.Embedding.create(input= str(text), engine= model)['data'][0]['embedding']       
 
-def mp4_to_embedding(path):
-    output = model.transcribe(path, fp16=False, language='English')
+    return question_vector
+
+def mp4_to_embedding(audioData):
+    output = model.transcribe(audioData, fp16=False, language='English')
+    # output = model.transcribe(path, fp16=False, language='English')
 
     embeddings = []
     output_segments = output["segments"]
@@ -57,6 +62,24 @@ def mp4_to_embedding(path):
 
     return embeddings
 
-def addEmbeddingToPinecone(embedding):
-    return "stuff happened"
-    return pinecone.add(embedding)
+import pinecone
+import pinecone.info
+index_name = "fox-v-dominion"
+index = pinecone.Index(index_name=index_name)
+
+def upsert_vectors_in_chunks(index, df, chunk_size=200):
+    num_chunks = (len(df) // chunk_size) + int(len(df) % chunk_size > 0)
+
+    for i in range(num_chunks):
+        chunk_start = i * chunk_size
+        chunk_end = min(chunk_start + chunk_size, len(df))
+        chunk = df.iloc[chunk_start:chunk_end]
+        index.upsert(vectors=zip(chunk.id, chunk.vector, chunk.metadata))
+        print(f"Upserted vectors from {chunk_start} to {chunk_end - 1}")
+
+# def addEmbeddingToPinecone(embedding):
+#     index.describe_index_stats()
+#     upsert_vectors_in_chunks(index, df_upsert)
+
+#     index.describe_index_stats()
+#     return pinecone.add(embedding)

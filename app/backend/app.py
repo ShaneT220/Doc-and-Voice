@@ -13,9 +13,9 @@ from approaches.chatreadretrieveread import ChatReadRetrieveReadApproach
 from azure.storage.blob import BlobServiceClient
 import pinecone
 from decouple import config
-# from utils.embedding.transcript import mp4_to_embedding, addEmbeddingToPinecone
-# from utils.openai.gpt3 import detectEmbeddingDiscrepency
-# from werkzeug import secure_filename
+from utils.embedding.transcript import mp4_to_embedding
+from utils.openai.gpt3 import detectEmbeddingDiscrepency
+from werkzeug.utils import secure_filename
 
 # Replace these with your own values, either in environment variables or directly here
 AZURE_STORAGE_ACCOUNT = os.environ.get("AZURE_STORAGE_ACCOUNT") or config("AZURE_STORAGE_ACCOUNT")
@@ -97,7 +97,6 @@ def content_file(path):
     
 @app.route("/ask", methods=["POST"])
 def ask():
-    # ensure_openai_token()
     approach = request.json["approach"]
     try:
         impl = ask_approaches.get(approach)
@@ -128,23 +127,25 @@ def chat():
 #     if openai_token.expires_on < int(time.time()) - 60:
 #         openai_token = azure_credential.get_token("https://cognitiveservices.azure.com/.default")
 #         openai.api_key = openai_token.token
+
 @app.route("/processAudio", methods=["POST"])
 async def processMp4():
     try:
         audio_data = request.data
-        return jsonify({'message': "Audio received and processed successfully"})
+        type(audio_data)
+
+        # f = request.files['file']
+        # f.save(secure_filename(f.filename))
+        # embedding = mp4_to_embedding(f.filename)
+
+        # output = detectEmbeddingDiscrepency(embedding) #see if the claims in the embedding conflicts with anything
+        # addEmbeddingToPinecone(embedding)
+        # return  jsonify({'message':output})
     except Exception as e:
         logging.exception("Exception in /processMp4")
         return jsonify({"error": str(e)}), 500
     
-    # f = request.files['file']
-    # f.save(secure_filename(f.filename))
-    # embedding = mp4_to_embedding(f.filename)
-
-    # output = detectEmbeddingDiscrepency(embedding) #see if the claims in the embedding conflicts with anything
-    # addEmbeddingToPinecone(embedding)
-    # print(output)
-    # return output
+    
 
 if __name__ == "__main__":
     app.run()
