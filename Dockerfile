@@ -22,22 +22,14 @@ RUN pip install numpy
 COPY ./app/backend/requirements.txt .
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-
-COPY ./app/backend /app/backend
-
-#I moved this up
-# RUN apt-get update && \ 
-# apt-get install -y curl && \
-# curl -sL https://deb.nodesource.com/setup_lts.x | bash - && \
-# apt-get install -y nodejs
-
 COPY ./app/frontend /app/frontend
 
 WORKDIR /app/frontend
 RUN npm install && \
 npm run build
-
 WORKDIR /app
+
+COPY ./app/backend /app/backend
 
 EXPOSE 5000
 

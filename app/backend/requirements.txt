@@ -8,3 +8,4 @@ python-decouple
 Werkzeug
 pinecone-client
 ffmpeg-python
+pydub

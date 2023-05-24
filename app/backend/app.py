@@ -129,11 +129,16 @@ def chat():
 #         openai.api_key = openai_token.token
 
 @app.route("/processAudio", methods=["POST"])
-async def processMp4():
+def processMp4():
     try:
         audio_data = request.data
-        type(audio_data)
-
+        from pydub import AudioSegment
+        import io
+        print(type(audio_data))
+        song = AudioSegment.from_file(io.BytesIO(audio_data), format="webm")
+        print(type(song))
+        print(song)
+        return "Aasdf"
         # f = request.files['file']
         # f.save(secure_filename(f.filename))
         # embedding = mp4_to_embedding(f.filename)
@@ -148,4 +153,4 @@ async def processMp4():
     
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0")
