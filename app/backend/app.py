@@ -13,7 +13,7 @@ from approaches.chatreadretrieveread import ChatReadRetrieveReadApproach
 from azure.storage.blob import BlobServiceClient
 import pinecone
 from decouple import config
-from utils.embedding.transcript import mp4_to_embedding
+# from utils.embedding.transcript import mp4_to_embedding
 from utils.openai.gpt3 import detectEmbeddingDiscrepency
 from werkzeug.utils import secure_filename
 
@@ -130,12 +130,14 @@ def chat():
 
 @app.route("/processAudio", methods=["POST"])
 def processMp4():
+    print("print damn you")
     try:
-        audio_data = request.data
         from pydub import AudioSegment
         import io
-        print(type(audio_data))
-        song = AudioSegment.from_file(io.BytesIO(audio_data), format="webm")
+        stream = io.BytesIO(request.data)
+        print(stream)
+        audio_data = stream.read()
+        song = AudioSegment.from_file(audio_data, format="webm")
         print(type(song))
         print(song)
         return "Aasdf"
@@ -147,10 +149,10 @@ def processMp4():
         # addEmbeddingToPinecone(embedding)
         # return  jsonify({'message':output})
     except Exception as e:
-        logging.exception("Exception in /processMp4")
+        logging.exception("Exception in /processAudio")
         return jsonify({"error": str(e)}), 500
     
     
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0")
+    app.run()

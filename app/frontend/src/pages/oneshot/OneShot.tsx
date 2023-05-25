@@ -26,13 +26,14 @@ const OneShot = () => {
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
     let intervalId: number;
 
-    useEffect(() => {
-        // Listener or useEffect that runs when the queue is populated
-        if (audioQueueRef.current.length > 0) {
-            console.log(audioQueueRef.current)
-            sendNextAudioInQueue();
-        }
-    }, [queueLength]);
+    // useEffect(() => {
+    //     // Listener or useEffect that runs when the queue is populated
+    //     if (audioQueueRef.current.length > 0) {
+    //         console.log("hit useEffect")
+    //         console.log(audioQueueRef.current)
+    //         sendNextAudioInQueue();
+    //     }
+    // }, [queueLength]);
 
     const makeApiRequest = async (question: string) => {
 
@@ -60,7 +61,6 @@ const OneShot = () => {
 
     function timingAudio(){
         console.log("media recorder start");
-        setIsRecording(true);
         timeIntervalRef.current = setInterval(() => {
         elapsedTimeRef.current += 1;
         console.log("Elapsed time:", elapsedTimeRef.current);
@@ -76,27 +76,20 @@ const OneShot = () => {
         if(mediaRecorderRef.current){
             mediaRecorderRef.current.requestData();
             mediaRecorderRef.current.ondataavailable = (e) => {
-                audioQueueRef.current.push(new Blob([e.data], { type: 'audio/webm' }));
-                setQueueLength(audioQueueRef.current.length);
+                sendAudioToAPI(new Blob([e.data], { type: 'audio/webm' }));
             }
         }
     }
 
-
-
     const startRecording = () => {
+        setIsRecording(true);
         navigator.mediaDevices
           .getUserMedia({ audio: true })
           .then((stream) => {
             // Create a new MediaRecorder
             const mediaRecorder = new MediaRecorder(stream);
             mediaRecorderRef.current = mediaRecorder;
-      
             mediaRecorderRef.current.addEventListener('start', timingAudio);
-      
-            console.log("media recorder start");
-            // Start recording
-            setIsRecording(true);
             mediaRecorderRef.current.start();
           })
           .catch((error) => {
