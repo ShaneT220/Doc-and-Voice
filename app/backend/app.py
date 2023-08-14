@@ -132,14 +132,16 @@ def chat():
 def processMp4():
     print("print damn you")
     try:
-        from pydub import AudioSegment
+        # from pydub import AudioSegment
         import io
-        stream = io.BytesIO(request.data)
-        print(stream)
-        audio_data = stream.read()
-        song = AudioSegment.from_file(audio_data, format="webm")
-        print(type(song))
-        print(song)
+        import soundfile as sf
+        import numpy as np
+        # from pydub.playback import play
+        data, samplerate = sf.read(io.BytesIO(request.data), format="RAW", channels=1, samplerate=44100, subtype='FLOAT')
+        output_path = "output.wav"
+        # AudioSegment.converter
+        # Write the audio data to the output file
+        sf.write(output_path, data, samplerate, format='wav', subtype='PCM_16')
         return "Aasdf"
         # f = request.files['file']
         # f.save(secure_filename(f.filename))

@@ -65,14 +65,13 @@ export function getCitationFilePath(citation: string): string {
     return `/content/${citation}`;
 }
 
-export async function sendAudioToAPI(recordedBlob: Blob): Promise<void> {
+export async function sendAudioToAPI(recordedText: string): Promise<void> {
     try {
         const response = await fetch('/processAudio', {
             method: 'POST',
-            body: recordedBlob,
-            headers: {
-                "Content-Type": "audio/webm"
-            }
+            body: JSON.stringify({
+                recorded_text: recordedText
+            })
         });
         
     } catch (error) {

@@ -10,13 +10,16 @@ import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 
+const MAX_TIME = 10
+
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
+    const [fireTheCannon, setFireTheCannon] = useState(true);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const timeIntervalRef = useRef<number>();
     const elapsedTimeRef = useRef(0);
-    const audioQueueRef = useRef<Blob[]>([]);
+    const audioQueueRef = useRef<string[]>([]);
     const lastQuestionRef = useRef<string>("");
     const [queueLength, setQueueLength] = useState(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -24,20 +27,29 @@ const OneShot = () => {
     const [answer, setAnswer] = useState<AskResponse>();
     const [activeCitation, setActiveCitation] = useState<string>();
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
-    let intervalId: number;
-
-    // useEffect(() => {
-    //     // Listener or useEffect that runs when the queue is populated
-    //     if (audioQueueRef.current.length > 0) {
-    //         console.log("hit useEffect")
-    //         console.log(audioQueueRef.current)
-    //         sendNextAudioInQueue();
-    //     }
-    // }, [queueLength]);
+    const recordingStop = useRef(false);
+    const [context, setContext] = useState<string[]>([""]) //takes the recording data and puts it into a string array
 
     const makeApiRequest = async (question: string) => {
 
     };
+
+
+    const SpeechRecognition = (window as any).speechRecognition || (window as any).webkitSpeechRecognition;
+    var recognition = new SpeechRecognition()
+
+    try {
+        recognition = new SpeechRecognition();
+        if(recognition != null) {
+            recognition.continuous = false;
+            recognition.lang = "en-US";
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
+        }
+    } catch(err) {
+        console.log("SpeechRecognition not supported")
+        recognition = null;
+    }
 
     const sendNextAudioInQueue = async () => {
         const audioData = audioQueueRef.current[0];
@@ -59,56 +71,72 @@ const OneShot = () => {
         }
     };
 
+    useEffect(() => {
+        if (context[0] !== "") {
+            console.log("useEffect bitch:   " + context)
+        }
+
+    }, [fireTheCannon])
+
     function timingAudio(){
         console.log("media recorder start");
         timeIntervalRef.current = setInterval(() => {
         elapsedTimeRef.current += 1;
-        console.log("Elapsed time:", elapsedTimeRef.current);
-        if (elapsedTimeRef.current >= 10) {
+        if (elapsedTimeRef.current >= MAX_TIME) {
             elapsedTimeRef.current = 0
-            addingAudio();
+            setFireTheCannon((prev) => !prev)
         }
         }, 1000);
     }
 
-    function addingAudio() {
-        console.log("Hitting adding audio")
-        if(mediaRecorderRef.current){
-            mediaRecorderRef.current.requestData();
-            mediaRecorderRef.current.ondataavailable = (e) => {
-                sendAudioToAPI(new Blob([e.data], { type: 'audio/webm' }));
+    function getResults() {
+        console.log(context)
+    }
+
+    const onResult = () => {
+        recognition.onresult = (event: any) => {
+            if(!recordingStop.current) {
+                setContext((prevContext) => {
+                    let finalResult = [""]
+                    if(event.results[0].isFinal) {
+                        finalResult = [prevContext[0] + " " + event.results[event.results.length - 1][0].transcript]
+                    } else {
+                        finalResult = [prevContext[0].trim(), " " + event.results[event.results.length - 1][0].transcript]
+                    }
+                    console.log(finalResult)
+                    return finalResult
+                })
+            }
+        }
+        recognition.onend = () => {
+            if(recordingStop.current) {
+                recognition.stop();
+            } else {
+                recognition.start();
             }
         }
     }
 
     const startRecording = () => {
-        setIsRecording(true);
-        navigator.mediaDevices
-          .getUserMedia({ audio: true })
-          .then((stream) => {
-            // Create a new MediaRecorder
-            const mediaRecorder = new MediaRecorder(stream);
-            mediaRecorderRef.current = mediaRecorder;
-            mediaRecorderRef.current.addEventListener('start', timingAudio);
-            mediaRecorderRef.current.start();
-          })
-          .catch((error) => {
-            console.error('Failed to get user media', error);
-          });
-      };
-      
-      const stopRecording = (): void => {
-        console.log("set to stop");
-        if (mediaRecorderRef.current != null) {
-            console.log("not null in stop")
-            addingAudio()
-            mediaRecorderRef.current.stop();
-            mediaRecorderRef.current.removeEventListener('start', timingAudio)
-            clearInterval(timeIntervalRef.current)
-            elapsedTimeRef.current = 0;
-            setIsRecording(false);
+        if(recognition == null) {
+            console.log("SpeechRecognition not support")
+            return
         }
-      };
+        recordingStop.current = false;
+        recognition.start();
+        timingAudio();
+        onResult();
+    };
+      
+    const stopRecording = () => {
+        if(recognition == null) {
+            console.log("SpeechRecognition not supported")
+            return;
+        }
+        recordingStop.current = true;
+        recognition.stop();
+        setIsRecording(false)
+    }
         
 
     const onShowCitation = (citation: string) => {
@@ -142,7 +170,11 @@ const OneShot = () => {
                         />
                     </div>
                     <div className={styles.oneShotMicButton}>
-                        <IconButton onClick={isRecording ? (stopRecording) : (startRecording)}>
+                        <IconButton onClick={isRecording ? (stopRecording) : (
+                            () => {
+                                setIsRecording(true);
+                                startRecording();
+                            })}>
                             { isRecording ? (
                                 <Mic48Filled/>
                                 ):(
