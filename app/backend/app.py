@@ -13,7 +13,7 @@ from approaches.chatreadretrieveread import ChatReadRetrieveReadApproach
 from azure.storage.blob import BlobServiceClient
 import pinecone
 from decouple import config
-# from utils.embedding.transcript import mp4_to_embedding
+from utils.embedding.transcript import get_embedding, addEmbeddingToPinecone
 from utils.openai.gpt3 import detectEmbeddingDiscrepency
 from werkzeug.utils import secure_filename
 
@@ -128,26 +128,15 @@ def chat():
 #         openai_token = azure_credential.get_token("https://cognitiveservices.azure.com/.default")
 #         openai.api_key = openai_token.token
 
-@app.route("/processAudio", methods=["POST"])
-def processMp4():
-    print("print damn you")
+@app.route("/processTranscript", methods=["POST"])
+def processTranscript():
     try:
-        from pydub import AudioSegment
-        import io
-        stream = io.BytesIO(request.data)
-        print(stream)
-        audio_data = stream.read()
-        song = AudioSegment.from_file(audio_data, format="webm")
-        print(type(song))
-        print(song)
-        return "Aasdf"
-        # f = request.files['file']
-        # f.save(secure_filename(f.filename))
-        # embedding = mp4_to_embedding(f.filename)
+        transcript = request.args.get('transcript')
+        embedding = get_embedding(transcript)
 
-        # output = detectEmbeddingDiscrepency(embedding) #see if the claims in the embedding conflicts with anything
-        # addEmbeddingToPinecone(embedding)
-        # return  jsonify({'message':output})
+        output = detectEmbeddingDiscrepency(embedding) #see if the claims in the embedding conflicts with anything
+        addEmbeddingToPinecone(embedding,transcript)
+        return  jsonify({'message':output})
     except Exception as e:
         logging.exception("Exception in /processAudio")
         return jsonify({"error": str(e)}), 500

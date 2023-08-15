@@ -3,29 +3,27 @@ context = ""
 question = ""
 
 import pinecone
-import pinecone.info
-pinecone.init(api_key='75589d87-a9f6-444f-9723-793ef8f6fcd8',
-              environment='us-east1-gcp')
 
-index_name = "fox-v-dominion"
+pinecone.init(api_key="75589d87-a9f6-444f-9723-793ef8f6fcd8", environment="us-east1-gcp")
+index = pinecone.Index("biggus-diccus")
 
-index = pinecone.Index(index_name=index_name)
     
-def detectEmbeddingDiscrepency(embedding):
+def detectEmbeddingDiscrepency(embedding, text):
     context = index.query(
         queries = embedding,
         top_k = 3,
         include_metadata = True
     )
+    
+    #whats this do???
+    # context = pinecone.get(embedding)
 
-    context = pinecone.get(embedding)
-
-    return findDiscrepencyGPT(context,context)
+    return findDiscrepencyGPT(text,context)
 
 
-def findDiscrepencyGPT(question,context):
+def findDiscrepencyGPT(statement,context):
     prompt = f"""
-Given the following statement: "{question}"
+Given the following statement: "{statement}"
 
 The following context has been found during a semantic search: "{context}"
 
