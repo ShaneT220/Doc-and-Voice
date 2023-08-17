@@ -15,11 +15,10 @@ const MAX_TIME = 10
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
-    const [fireTheCannon, setFireTheCannon] = useState(true);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const timeIntervalRef = useRef<number>();
     const elapsedTimeRef = useRef(0);
-    const audioQueueRef = useRef<string[]>([]);
+    const contextQueueRef = useRef<string[]>([]);
     const lastQuestionRef = useRef<string>("");
     const [queueLength, setQueueLength] = useState(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -52,17 +51,17 @@ const OneShot = () => {
     }
 
     const sendNextAudioInQueue = async () => {
-        const audioData = audioQueueRef.current[0];
+        const audioData = contextQueueRef.current[0];
         try {
             // Send the recorded audio to the API and wait for the promise to resolve
             await sendAudioToAPI(audioData);
 
             // Remove the sent audio from the queue
-            audioQueueRef.current.shift();
-            setQueueLength(audioQueueRef.current.length);
+            contextQueueRef.current.shift();
+            setQueueLength(contextQueueRef.current.length);
 
             // If there are more audio chunks in the queue, send the next one
-            if (audioQueueRef.current.length > 0) {
+            if (contextQueueRef.current.length > 0) {
                 sendNextAudioInQueue();
             }
         } catch (error) {
@@ -71,24 +70,17 @@ const OneShot = () => {
         }
     };
 
-    useEffect(() => {
-        if (context[0] !== "") {
-            console.log("useEffect bitch:   " + context)
-        }
-
-    }, [fireTheCannon])
-
+   
     function timingAudio(){
         console.log("media recorder start");
         timeIntervalRef.current = setInterval(() => {
         elapsedTimeRef.current += 1;
         if (elapsedTimeRef.current >= MAX_TIME) {
             elapsedTimeRef.current = 0
-            setFireTheCannon((prev) => !prev)
         }
         }, 1000);
     }
-
+    
     function getResults() {
         console.log(context)
     }
@@ -116,7 +108,14 @@ const OneShot = () => {
             }
         }
     }
-
+    
+    //experimental function to stop recorder
+    function stopTimingAudio() {
+        console.log("media recorder stop");
+        clearInterval(timeIntervalRef.current); //this should stop the timer of the current interval we are working with 
+        elapsedTimeRef.current = 0;// reset the elapsed time to zero
+    
+    }
     const startRecording = () => {
         if(recognition == null) {
             console.log("SpeechRecognition not support")
@@ -136,6 +135,7 @@ const OneShot = () => {
         recordingStop.current = true;
         recognition.stop();
         setIsRecording(false)
+        stopTimingAudio() // use function to stop recording
     }
         
 
