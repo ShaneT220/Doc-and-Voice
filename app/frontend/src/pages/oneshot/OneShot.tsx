@@ -4,7 +4,7 @@ import { Mic48Regular, Mic48Filled } from "@fluentui/react-icons";
 
 import styles from "./OneShot.module.css";
 
-import { AskResponse, sendAudioToAPI } from "../../api";
+import { AskResponse, sendTranscriptToAPI } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanelTabs } from "../../components/AnalysisPanel";
@@ -15,7 +15,6 @@ const MAX_TIME = 10
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const timeIntervalRef = useRef<number>();
     const elapsedTimeRef = useRef(0);
     const contextQueueRef = useRef<string[]>([]);
@@ -29,6 +28,7 @@ const OneShot = () => {
     const recordingStop = useRef(false);
     const [context, setContext] = useState<string[]>([""]) //takes the recording data and puts it into a string array
 
+    //This function is for making api requests for chat bot functionality
     const makeApiRequest = async (question: string) => {
 
     };
@@ -50,11 +50,23 @@ const OneShot = () => {
         recognition = null;
     }
 
-    const sendNextAudioInQueue = async () => {
-        const audioData = contextQueueRef.current[0];
+    /* 
+        ToDo:
+         1. When the timer hits 10 seconds take the context that is captured in the context useState (context[0]) to get the mosty recent context that was captured.
+         2. Push the recent context to the contextQueueRef ref which is the queue we are going to need
+         3. Set the context (context[0]) to an empty string.
+         4. Make a useEffect that watches the length on the contextQueueRef and when the queue is populated run sendNextTranscriptInQueue function which will take the queue and start sending it to the api
+        
+        When the api fires and show the most recent text that was sent you will see the api call print the context to the console on the browser.
+        If you could figure out a better way that doesn't use a useEffect at all by all means you have freedom to make any changes you want.
+        If you get stuck or not sure what to do I'll be online tomorrow and can answer any questions.
+    */
+
+    const sendNextTranscriptInQueue = async () => {
+        const transcriptionData = contextQueueRef.current[0];
         try {
             // Send the recorded audio to the API and wait for the promise to resolve
-            await sendAudioToAPI(audioData);
+            await sendTranscriptToAPI(transcriptionData);
 
             // Remove the sent audio from the queue
             contextQueueRef.current.shift();
@@ -62,7 +74,7 @@ const OneShot = () => {
 
             // If there are more audio chunks in the queue, send the next one
             if (contextQueueRef.current.length > 0) {
-                sendNextAudioInQueue();
+                sendNextTranscriptInQueue();
             }
         } catch (error) {
             console.error('Failed to send audio to API:', error);
@@ -79,10 +91,6 @@ const OneShot = () => {
             elapsedTimeRef.current = 0
         }
         }, 1000);
-    }
-    
-    function getResults() {
-        console.log(context)
     }
 
     const onResult = () => {
