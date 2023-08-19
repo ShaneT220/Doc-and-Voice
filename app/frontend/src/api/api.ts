@@ -66,17 +66,19 @@ export function getCitationFilePath(citation: string): string {
 }
 
 export async function sendTranscriptToAPI(recordedText: string): Promise<void> {
-    console.log(recordedText)
-    // try {
-    //     const response = await fetch('/processTranscript', {
-    //         method: 'POST',
-    //         body: JSON.stringify({
-    //             recorded_text: recordedText
-    //         })
-    //     });
+    try {
+        const response = await fetch('/processTranscript', {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                recorded_text: recordedText
+            })
+        });
         
-    // } catch (error) {
-    //     console.error('Error sending audio', error);
-    //     throw error;
-    // }
+    } catch (error) {
+        console.error('Error sending audio', error);
+        throw error;
+    }
 };
