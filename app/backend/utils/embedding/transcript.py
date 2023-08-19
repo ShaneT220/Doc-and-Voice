@@ -37,9 +37,9 @@ def addEmbeddingToPinecone(embedding,text):
                 'values': embedding,
                 'metadata': {"embedding_type": "transcript",
                             "token_size": 0,
-                            "timestamp": current_datetime}
+                            "timestamp": current_datetime,
+                            "text": text}
                 }])
-    print("did this work?")
     return
 
 
