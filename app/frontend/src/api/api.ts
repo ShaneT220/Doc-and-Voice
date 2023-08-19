@@ -65,17 +65,18 @@ export function getCitationFilePath(citation: string): string {
     return `/content/${citation}`;
 }
 
-export async function sendAudioToAPI(recordedText: string): Promise<void> {
-    try {
-        const response = await fetch('/processAudio', {
-            method: 'POST',
-            body: JSON.stringify({
-                recorded_text: recordedText
-            })
-        });
+export async function sendTranscriptToAPI(recordedText: string): Promise<void> {
+    console.log(recordedText)
+    // try {
+    //     const response = await fetch('/processTranscript', {
+    //         method: 'POST',
+    //         body: JSON.stringify({
+    //             recorded_text: recordedText
+    //         })
+    //     });
         
-    } catch (error) {
-        console.error('Error sending audio', error);
-        throw error;
-    }
+    // } catch (error) {
+    //     console.error('Error sending audio', error);
+    //     throw error;
+    // }
 };
