@@ -131,7 +131,7 @@ def chat():
 @app.route("/processTranscript", methods=["POST"])
 def processTranscript():
     try:
-        transcript = request.args.get('recorded_text')
+        transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
 
         #We get the discrepency before adding it to pinecone to not get the source embedding
