@@ -27,11 +27,21 @@ const OneShot = () => {
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
     const recordingStop = useRef(false);
     const [context, setContext] = useState<string[]>([""]) //takes the recording data and puts it into a string array
-
+    
     //This function is for making api requests for chat bot functionality
     const makeApiRequest = async (question: string) => {
 
     };
+    
+    
+    
+    
+    useEffect(() => {
+    // if the queue is populated
+    if (contextQueueRef.current.length > 0) {
+        sendNextTranscriptInQueue();
+    }
+}, [contextQueueRef.current.length]);
 
 
     const SpeechRecognition = (window as any).speechRecognition || (window as any).webkitSpeechRecognition;
@@ -63,35 +73,45 @@ const OneShot = () => {
     */
 
     const sendNextTranscriptInQueue = async () => {
-        const transcriptionData = contextQueueRef.current[0];
-        try {
-            // Send the recorded audio to the API and wait for the promise to resolve
-            await sendTranscriptToAPI(transcriptionData);
-
-            // Remove the sent audio from the queue
-            contextQueueRef.current.shift();
-            setQueueLength(contextQueueRef.current.length);
-
-            // If there are more audio chunks in the queue, send the next one
-            if (contextQueueRef.current.length > 0) {
+        if (contextQueueRef.current.length > 0) {
+            const currentTranscript = contextQueueRef.current[0];
+    
+            try {
+                // Send the recorded audio to the API and wait for the promise to resolve
+                await sendTranscriptToAPI(currentTranscript);
+    
+                // Remove the sent transcript from the queue
+                contextQueueRef.current.shift();
+                setQueueLength(contextQueueRef.current.length);
+    
+                // If there are more transcripts in the queue, send the next one
                 sendNextTranscriptInQueue();
+            } catch (error) {
+                console.error('Failed to send transcript to API:', error);
+                // Handle the error, if needed
             }
-        } catch (error) {
-            console.error('Failed to send audio to API:', error);
-            // Handle the error, if needed
         }
-    };
+};
 
-   
     function timingAudio(){
         console.log("media recorder start");
         timeIntervalRef.current = setInterval(() => {
         elapsedTimeRef.current += 1;
         if (elapsedTimeRef.current >= MAX_TIME) {
             elapsedTimeRef.current = 0
+
+            // save most recent context
+            const recentContext = context[0];
+
+            // Push the recent context to the queue
+            contextQueueRef.current.push(recentContext);
+
+            // Clear
+            setContext([""]);
         }
-        }, 1000);
-    }
+    }, 1000);
+}
+
 
     const onResult = () => {
         recognition.onresult = (event: any) => {
