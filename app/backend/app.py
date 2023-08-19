@@ -43,7 +43,7 @@ KB_FIELDS_SOURCEPAGE = os.environ.get("KB_FIELDS_SOURCEPAGE") or "page"
 # azure_credential = DefaultAzureCredential()
 
 # Used by the OpenAI SDK
-openai.api_version = "2022-12-01"
+openai.api_version = "2020-11-07"
 openai.api_key = OPENAI_API_KEY
 
 # initiate pinecone
@@ -134,14 +134,17 @@ def processTranscript():
         transcript = request.args.get('transcript')
         embedding = get_embedding(transcript)
 
-        output = detectEmbeddingDiscrepency(embedding) #see if the claims in the embedding conflicts with anything
-        addEmbeddingToPinecone(embedding,transcript)
+        #We get the discrepency before adding it to pinecone to not get the source embedding
+        output = detectEmbeddingDiscrepency(embedding,transcript) #see if the claims in the embedding conflicts with anything
+
+        #We now add it to pinecone
+        addEmbeddingToPinecone(embedding,transcript) 
         return  jsonify({'message':output})
     except Exception as e:
-        logging.exception("Exception in /processAudio")
+        logging.exception("Exception in /processTranscript")
         return jsonify({"error": str(e)}), 500
     
     
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=1)

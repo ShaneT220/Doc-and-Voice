@@ -30,15 +30,17 @@ def get_embedding(text):
 def addEmbeddingToPinecone(embedding,text):
     random.seed(text)
     current_datetime = datetime.datetime.now()
-    index.upsert({
+    print(type)
+    # [{'id': 'id1', 'values': [1.0, 2.0, 3.0], 'metadata': {'key': 'value'}}
+    index.upsert([{
                 'id': random_uuid(),
                 'values': embedding,
-                'metadata': {"token_size": 0,
-                             "timestamp": current_datetime}
-                })
-
-    index.describe_index_stats()
-    return pinecone.add(embedding)
+                'metadata': {"embedding_type": "transcript",
+                            "token_size": 0,
+                            "timestamp": current_datetime}
+                }])
+    print("did this work?")
+    return
 
 
 # def mp4_to_embedding(audioData):

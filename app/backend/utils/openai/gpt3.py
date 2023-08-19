@@ -10,14 +10,13 @@ index = pinecone.Index("biggus-diccus")
     
 def detectEmbeddingDiscrepency(embedding, text):
     context = index.query(
-        queries = embedding,
+        vector = embedding,
         top_k = 3,
         include_metadata = True
     )
     
     #whats this do???
     # context = pinecone.get(embedding)
-
     return findDiscrepencyGPT(text,context)
 
 
@@ -27,12 +26,12 @@ Given the following statement: "{statement}"
 
 The following context has been found during a semantic search: "{context}"
 
-Can you analyze and summarize the main differences between the statement and the context? Also, can you provide insights that, while not constituting legal advice, could be potentially useful in a court case?
+Can you analyze and summarize the main differences between the statement and the context using bullet points? Also, can you provide insights that, while not constituting legal advice, could be potentially useful in a court case?
 """
     ans = openai.ChatCompletion.create(
         model="gpt-4" ,
         messages=[
-                {"role": "system", "content": "You are LegalEyes, a AI designed to assist lawyers."},
+                {"role": "system", "content": "You are LegalEyes, a AI designed to assist lawyers find discrepencies and list them in a short and easy to read fashion."},
                 {"role": "user", "content": prompt}
             ]
     )
