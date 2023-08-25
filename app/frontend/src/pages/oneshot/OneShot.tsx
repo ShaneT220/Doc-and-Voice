@@ -42,7 +42,8 @@ const OneShot = () => {
                     const editedResult = ["", ...prev];
                     return editedResult
                 })
-                await sendTranscriptToAPI(result);
+                const response = await sendTranscriptToAPI(result);
+                setAnswer(response)
             } catch (error) {
     
             }
@@ -188,13 +189,13 @@ const OneShot = () => {
                 <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                 <h1 className={styles.oneshotTitle}>Ask your data</h1>
                 <div className={styles.oneShotActionLine}>
-                    <div className={styles.oneshotQuestionInput}>
+                    {/* <div className={styles.oneshotQuestionInput}>
                         <QuestionInput
                             placeholder="Example: Does my plan cover annual eye exams?"
                             disabled={isLoading}
                             onSend={question => makeApiRequest(question)}
                         />
-                    </div>
+                    </div> */}
                     <div className={styles.oneShotMicButton}>
                         <IconButton onClick={isRecording ? (stopRecording) : (
                             () => {
