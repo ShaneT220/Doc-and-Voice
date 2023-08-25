@@ -36,4 +36,4 @@ Can you analyze and summarize the main differences between the statement and the
             ]
     )
     
-    return ans
+    return ans['choices'][0]['message']['content']

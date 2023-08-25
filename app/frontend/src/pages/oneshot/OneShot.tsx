@@ -10,7 +10,7 @@ import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 
-const MAX_TIME = 10
+const MAX_TIME = 60
 
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);

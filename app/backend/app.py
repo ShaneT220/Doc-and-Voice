@@ -138,8 +138,9 @@ def processTranscript():
         output = detectEmbeddingDiscrepency(embedding,transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
-        addEmbeddingToPinecone(embedding,transcript) 
-        return  jsonify({'message':output})
+        addEmbeddingToPinecone(embedding,transcript)
+        r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
+        return  jsonify(r)
     except Exception as e:
         logging.exception("Exception in /processTranscript")
         return jsonify({"error": str(e)}), 500
