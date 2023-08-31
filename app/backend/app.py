@@ -14,7 +14,7 @@ from azure.storage.blob import BlobServiceClient
 import pinecone
 from decouple import config
 from utils.embedding.transcript import get_embedding, addEmbeddingToPinecone
-from utils.openai.gpt3 import detectEmbeddingDiscrepency
+from utils.openai.gpt3 import getEmbeddingSimilarity,getAudioSummary,getEmbeddingDiscrepency
 from werkzeug.utils import secure_filename
 
 # Replace these with your own values, either in environment variables or directly here
@@ -128,14 +128,14 @@ def chat():
 #         openai_token = azure_credential.get_token("https://cognitiveservices.azure.com/.default")
 #         openai.api_key = openai_token.token
 
-@app.route("/processTranscript", methods=["POST"])
+@app.route("/processDiscrepency", methods=["POST"])
 def processTranscript():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
 
         #We get the discrepency before adding it to pinecone to not get the source embedding
-        output = detectEmbeddingDiscrepency(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        output = getEmbeddingDiscrepency(embedding,transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
         addEmbeddingToPinecone(embedding,transcript)
@@ -145,7 +145,57 @@ def processTranscript():
         logging.exception("Exception in /processTranscript")
         return jsonify({"error": str(e)}), 500
     
-    
+@app.route("/processSimilarity", methods=["POST"])
+def processTranscript():
+    try:
+        transcript = request.json["recorded_text"]
+        embedding = get_embedding(transcript)
 
+        #We get the discrepency before adding it to pinecone to not get the source embedding
+        output = getEmbeddingSimilarity(embedding,transcript) #see if the claims in the embedding conflicts with anything
+
+        #We now add it to pinecone
+        addEmbeddingToPinecone(embedding,transcript)
+        r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
+        return  jsonify(r)
+    except Exception as e:
+        logging.exception("Exception in /processTranscript")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/processSummary", methods=["POST"])
+def processTranscript():
+    try:
+        transcript = request.json["recorded_text"]
+        embedding = get_embedding(transcript)
+
+        #We get the discrepency before adding it to pinecone to not get the source embedding
+        output = getAudioSummary(transcript) #see if the claims in the embedding conflicts with anything
+
+        #We now add it to pinecone
+        addEmbeddingToPinecone(embedding,transcript)
+        r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
+        return  jsonify(r)
+    except Exception as e:
+        logging.exception("Exception in /processTranscript")
+        return jsonify({"error": str(e)}), 500
+   
+@app.route("/processEverything", methods=["POST"])
+def processTranscript():
+    try:
+        transcript = request.json["recorded_text"]
+        embedding = get_embedding(transcript)
+
+        discrepency_output = getEmbeddingDiscrepency(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        similarity_output = getEmbeddingSimilarity(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        summary_output = getAudioSummary(transcript) #see if the claims in the embedding conflicts with anything
+
+        #We now add it to pinecone
+        addEmbeddingToPinecone(embedding,transcript)
+        
+        r =  {"data_points": "", "discrepency": discrepency_output, "similarity":similarity_output, "summary":summary_output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
+        return  jsonify(r)
+    except Exception as e:
+        logging.exception("Exception in /processTranscript")
+        return jsonify({"error": str(e)}), 500 
 if __name__ == "__main__":
     app.run(debug=1)
