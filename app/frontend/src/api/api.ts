@@ -65,7 +65,7 @@ export function getCitationFilePath(citation: string): string {
     return `/content/${citation}`;
 }
 
-export async function sendTranscriptToAPI(recordedText: string): Promise<AskResponse> {
+export async function sendTranscriptToAPI(recordedText: string, endpoint: string): Promise<AskResponse> {
     const response = await fetch('/processTranscript', {
         method: 'POST',
         headers: {
