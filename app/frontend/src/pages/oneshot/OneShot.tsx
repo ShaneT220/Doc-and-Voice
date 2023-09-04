@@ -29,7 +29,7 @@ const OneShot = () => {
     const recordingStop = useRef(false);
     const [context, setContext] = useState<string[]>([""]) //takes the recording data and puts it into a string array
     const [timerTrigger, setTimerTrigger] = useState(true);
-    const [endpoint, setEndpoint] = useState("/processDiscrepency")
+    const [endpoint, setEndpoint] = useState("/processOppose")
     
     //This function is for making api requests for chat bot functionality
     const makeApiRequest = async (question: string) => {
@@ -244,7 +244,7 @@ const OneShot = () => {
             >
                 <Label>Find:</Label>
                 <RadioGroup value={endpoint} onChange={((_, data) => setEndpoint(data.value))}>
-                    <Radio value="/processDiscrepency" label="Discrepency" />
+                    <Radio value="/processOppose" label="Oppose" />
                     <Radio value="/processSimilarity" label="Similarity" />
                     <Radio value="/processSummary" label="Summary" />
                     <Radio value="/processEverything" label="Everything" />
