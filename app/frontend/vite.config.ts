@@ -13,9 +13,9 @@ export default defineConfig({
         proxy: {
             "/ask": "http://localhost:5000",
             "/chat": "http://localhost:5000",
-            "/processDiscrepency": "http://localhost:5000",
-            "/processSimilarity": "http://localhost:5000",
-            "/processSummary": "http://localhost:5000",
+            "/processOppose": "http://localhost:5000",
+            "/processSupport": "http://localhost:5000",
+            "/processSummarize": "http://localhost:5000",
             "/processEverything": "http://localhost:5000"
         }
     }
