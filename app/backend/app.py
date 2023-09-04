@@ -129,7 +129,7 @@ def chat():
 #         openai.api_key = openai_token.token
 
 @app.route("/processDiscrepency", methods=["POST"])
-def processTranscript():
+def processDiscrepency():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
@@ -146,7 +146,7 @@ def processTranscript():
         return jsonify({"error": str(e)}), 500
     
 @app.route("/processSimilarity", methods=["POST"])
-def processTranscript():
+def processSimilarity():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
@@ -163,7 +163,7 @@ def processTranscript():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/processSummary", methods=["POST"])
-def processTranscript():
+def processSummary():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
@@ -180,7 +180,7 @@ def processTranscript():
         return jsonify({"error": str(e)}), 500
    
 @app.route("/processEverything", methods=["POST"])
-def processTranscript():
+def processEverything():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
