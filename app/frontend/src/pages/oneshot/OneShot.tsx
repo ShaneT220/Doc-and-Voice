@@ -245,8 +245,8 @@ const OneShot = () => {
                 <Label>Find:</Label>
                 <RadioGroup value={endpoint} onChange={((_, data) => setEndpoint(data.value))}>
                     <Radio value="/processOppose" label="Oppose" />
-                    <Radio value="/processSimilarity" label="Similarity" />
-                    <Radio value="/processSummary" label="Summary" />
+                    <Radio value="/processSupport" label="Support" />
+                    <Radio value="/processSummarize" label="Summarize" />
                     <Radio value="/processEverything" label="Everything" />
                 </RadioGroup>
             </Panel>
