@@ -13,7 +13,10 @@ export default defineConfig({
         proxy: {
             "/ask": "http://localhost:5000",
             "/chat": "http://localhost:5000",
-            "/processAudio": "http://localhost:5000"
+            "/processDiscrepency": "http://localhost:5000",
+            "/processSimilarity": "http://localhost:5000",
+            "/processSummary": "http://localhost:5000",
+            "/processEverything": "http://localhost:5000"
         }
     }
 });
