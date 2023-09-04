@@ -142,7 +142,7 @@ def processDiscrepency():
         r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
         return  jsonify(r)
     except Exception as e:
-        logging.exception("Exception in /processTranscript")
+        logging.exception("Exception in /processDiscrepency")
         return jsonify({"error": str(e)}), 500
     
 @app.route("/processSimilarity", methods=["POST"])
@@ -159,7 +159,7 @@ def processSimilarity():
         r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
         return  jsonify(r)
     except Exception as e:
-        logging.exception("Exception in /processTranscript")
+        logging.exception("Exception in /processSimilarity")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/processSummary", methods=["POST"])
@@ -176,7 +176,7 @@ def processSummary():
         r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
         return  jsonify(r)
     except Exception as e:
-        logging.exception("Exception in /processTranscript")
+        logging.exception("Exception in /processSummary")
         return jsonify({"error": str(e)}), 500
    
 @app.route("/processEverything", methods=["POST"])
@@ -195,7 +195,7 @@ def processEverything():
         r =  {"data_points": "", "discrepency": discrepency_output, "similarity":similarity_output, "summary":summary_output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
         return  jsonify(r)
     except Exception as e:
-        logging.exception("Exception in /processTranscript")
+        logging.exception("Exception in /processEverything")
         return jsonify({"error": str(e)}), 500 
 if __name__ == "__main__":
     app.run(debug=1)
