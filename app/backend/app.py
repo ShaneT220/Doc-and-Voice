@@ -185,14 +185,14 @@ def processEverything():
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
 
-        Oppose_output = getEmbeddingOppose(embedding,transcript) #see if the claims in the embedding conflicts with anything
-        Summarize_output = getEmbeddingSummarize(embedding,transcript) #see if the claims in the embedding conflicts with anything
-        Summarize_output = getAudioSummarize(transcript) #see if the claims in the embedding conflicts with anything
+        oppose_output = getEmbeddingOppose(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        summarize_output = getEmbeddingSummarize(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        audio_summarize_output = getAudioSummarize(transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
         addEmbeddingToPinecone(embedding,transcript)
         
-        r =  {"data_points": "", "Oppose": Oppose_output, "Summarize":Summarize_output, "Summarize":Summarize_output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
+        r =  {"oppose": oppose_output, "summarize":summarize_output, "audio_summarization":audio_summarize_output}
         return  jsonify(r)
     except Exception as e:
         logging.exception("Exception in /processEverything")

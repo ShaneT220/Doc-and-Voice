@@ -1,4 +1,4 @@
-import { AskRequest, AskResponse, ChatRequest } from "./models";
+import { AskRequest, AskResponse, ChatRequest, EverythingResponse } from "./models";
 
 export async function askApi(options: AskRequest): Promise<AskResponse> {
     const response = await fetch("/ask", {
@@ -67,7 +67,7 @@ export function getCitationFilePath(citation: string): string {
 
 export async function sendTranscriptToAPI(recordedText: string, endpoint: string): Promise<AskResponse> {
     const response = await fetch(endpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
@@ -75,8 +75,19 @@ export async function sendTranscriptToAPI(recordedText: string, endpoint: string
             recorded_text: recordedText
         })
     });
-    const parsedResponse: AskResponse = await response.json();
-    
-    return parsedResponse;
 
-};
+    let parsedResponse: AskResponse;
+    if (endpoint !== "/processEverything") {
+        parsedResponse = await response.json();
+    } else {
+        const everythingResponse: EverythingResponse = await response.json();
+        parsedResponse = {
+            answer: `Oppose: \n ${everythingResponse.oppose} \n\n Summarize: \n ${everythingResponse.summarize} \n\n Audio Summarization: \n ${everythingResponse.audio_summarization}`,
+            thoughts: "Question:<br><br><br>Prompt:<br>",
+            data_points: [],
+            error: ""
+        };
+    }
+
+    return parsedResponse;
+}
