@@ -145,8 +145,8 @@ def processOppose():
         logging.exception("Exception in /processOppose")
         return jsonify({"error": str(e)}), 500
     
-@app.route("/processSummarize", methods=["POST"])
-def processSummarize():
+@app.route("/processSupport", methods=["POST"])
+def processSupport():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
