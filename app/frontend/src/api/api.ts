@@ -82,10 +82,10 @@ export async function sendTranscriptToAPI(recordedText: string, endpoint: string
     } else {
         const everythingResponse: EverythingResponse = await response.json();
         parsedResponse = {
-            answer: `Oppose: \n ${everythingResponse.oppose} \n\n Summarize: \n ${everythingResponse.summarize} \n\n Audio Summarization: \n ${everythingResponse.audio_summarization}`,
+            answer: `Oppose: \n ${everythingResponse.oppose} \n\n Summarize: \n ${everythingResponse.summarize} \n\n Support: \n ${everythingResponse.support}`,
             thoughts: "Question:<br><br><br>Prompt:<br>",
-            data_points: [],
-            error: ""
+            data_points: []
+            // error: ""
         };
     }
 

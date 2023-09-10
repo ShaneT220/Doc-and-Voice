@@ -187,12 +187,12 @@ def processEverything():
 
         oppose_output = getEmbeddingOppose(embedding,transcript) #see if the claims in the embedding conflicts with anything
         support_output = getEmbeddingSupport(embedding,transcript) #see if the claims in the embedding conflicts with anything
-        audio_summarize_output = getAudioSummarize(transcript) #see if the claims in the embedding conflicts with anything
+        summarize_output = getAudioSummarize(transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
         addEmbeddingToPinecone(embedding,transcript)
         
-        r =  {"oppose": oppose_output, "summarize":support_output, "audio_summarization":audio_summarize_output}
+        r =  {"oppose": oppose_output, "support":support_output, "summarize":summarize_output}
         return  jsonify(r)
     except Exception as e:
         logging.exception("Exception in /processEverything")
