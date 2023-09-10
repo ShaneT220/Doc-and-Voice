@@ -31,7 +31,7 @@ Can you analyze and summarize the main differences between the statement and the
     
     return ans['choices'][0]['message']['content']
 
-def getEmbeddingSummarize(embedding, text):
+def getEmbeddingSupport(embedding, text):
     context = index.query(
         vector = embedding,
         top_k = 10,

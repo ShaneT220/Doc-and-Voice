@@ -14,7 +14,7 @@ from azure.storage.blob import BlobServiceClient
 import pinecone
 from decouple import config
 from utils.embedding.transcript import get_embedding, addEmbeddingToPinecone
-from utils.openai.gpt3 import getEmbeddingSummarize,getAudioSummarize,getEmbeddingOppose
+from utils.openai.gpt3 import getEmbeddingSupport,getAudioSummarize,getEmbeddingOppose
 from werkzeug.utils import secure_filename
 
 # Replace these with your own values, either in environment variables or directly here
@@ -152,7 +152,7 @@ def processSummarize():
         embedding = get_embedding(transcript)
 
         #We get the Oppose before adding it to pinecone to not get the source embedding
-        output = getEmbeddingSummarize(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        output = getEmbeddingSupport(embedding,transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
         addEmbeddingToPinecone(embedding,transcript)
@@ -186,7 +186,7 @@ def processEverything():
         embedding = get_embedding(transcript)
 
         oppose_output = getEmbeddingOppose(embedding,transcript) #see if the claims in the embedding conflicts with anything
-        summarize_output = getEmbeddingSummarize(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        summarize_output = getEmbeddingSupport(embedding,transcript) #see if the claims in the embedding conflicts with anything
         audio_summarize_output = getAudioSummarize(transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
