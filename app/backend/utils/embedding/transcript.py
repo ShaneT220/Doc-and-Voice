@@ -30,7 +30,6 @@ def get_embedding(text):
 def addAudioEmbeddingToPinecone(embedding,text):
     random.seed(text)
     current_datetime = datetime.datetime.now()
-    print(type)
     # [{'id': 'id1', 'values': [1.0, 2.0, 3.0], 'metadata': {'key': 'value'}}
     index.upsert([{
                 'id': random_uuid(),
