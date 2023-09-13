@@ -32,7 +32,7 @@ export type AskResponse = {
 export type EverythingResponse = {
     oppose: string;
     summarize: string;
-    audio_summarization: string;
+    support: string;
     error?: string;
 };
 
