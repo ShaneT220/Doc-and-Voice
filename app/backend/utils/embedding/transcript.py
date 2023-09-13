@@ -27,7 +27,7 @@ def get_embedding(text):
     return question_vector
 
 
-def addEmbeddingToPinecone(embedding,text):
+def addAudioEmbeddingToPinecone(embedding,text):
     random.seed(text)
     current_datetime = datetime.datetime.now()
     print(type)
@@ -39,7 +39,7 @@ def addEmbeddingToPinecone(embedding,text):
                             "token_size": 0,
                             "timestamp": current_datetime,
                             "text": text}
-                }])
+                }], namespace='audio')
     return
 
 

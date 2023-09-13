@@ -13,8 +13,8 @@ from approaches.chatreadretrieveread import ChatReadRetrieveReadApproach
 from azure.storage.blob import BlobServiceClient
 import pinecone
 from decouple import config
-from utils.embedding.transcript import get_embedding, addEmbeddingToPinecone
-from utils.openai.gpt3 import getEmbeddingSupport,getAudioSummarize,getEmbeddingOppose
+from utils.embedding.transcript import get_embedding, addAudioEmbeddingToPinecone
+from utils.openai.gpt3 import getContext,getContextSupport,getAudioSummarize,getContextOppose
 from werkzeug.utils import secure_filename
 
 # Replace these with your own values, either in environment variables or directly here
@@ -133,13 +133,14 @@ def processOppose():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
+        context = getContext(embedding,namespace='docs')
 
         #We get the Oppose before adding it to pinecone to not get the source embedding
-        output = getEmbeddingOppose(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        output = getContextOppose(context,transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
-        addEmbeddingToPinecone(embedding,transcript)
-        r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
+        addAudioEmbeddingToPinecone(embedding,transcript)
+        r =  {"data_points": "", "answer": output, "context":context, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
         return  jsonify(r)
     except Exception as e:
         logging.exception("Exception in /processOppose")
@@ -150,13 +151,14 @@ def processSupport():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
+        context = getContext(embedding,namespace='docs')
 
         #We get the Oppose before adding it to pinecone to not get the source embedding
-        output = getEmbeddingSupport(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        output = getContextSupport(context,transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
-        addEmbeddingToPinecone(embedding,transcript)
-        r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
+        addAudioEmbeddingToPinecone(embedding,transcript)
+        r =  {"data_points": "", "answer": output, "context":context, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
         return  jsonify(r)
     except Exception as e:
         logging.exception("Exception in /processSummarize")
@@ -172,7 +174,7 @@ def processSummarize():
         output = getAudioSummarize(transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
-        addEmbeddingToPinecone(embedding,transcript)
+        addAudioEmbeddingToPinecone(embedding,transcript)
         r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
         return  jsonify(r)
     except Exception as e:
@@ -184,15 +186,16 @@ def processEverything():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
-
-        oppose_output = getEmbeddingOppose(embedding,transcript) #see if the claims in the embedding conflicts with anything
-        support_output = getEmbeddingSupport(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        context = getContext(embedding,namespace='docs')
+        
+        oppose_output = getContextOppose(context,transcript) #see if the claims in the embedding conflicts with anything
+        support_output = getContextSupport(context,transcript) #see if the claims in the embedding conflicts with anything
         audio_summarize_output = getAudioSummarize(transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
-        addEmbeddingToPinecone(embedding,transcript)
+        addAudioEmbeddingToPinecone(embedding,transcript)
         
-        r =  {"oppose": oppose_output, "summarize":support_output, "audio_summarization":audio_summarize_output}
+        r =  {"oppose": oppose_output, "summarize":support_output, "audio_summarization":audio_summarize_output, "context":context}
         return  jsonify(r)
     except Exception as e:
         logging.exception("Exception in /processEverything")

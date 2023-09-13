@@ -8,13 +8,16 @@ pinecone.init(api_key="75589d87-a9f6-444f-9723-793ef8f6fcd8", environment="us-ea
 index = pinecone.Index("biggus-diccus")
 MODEL = "gpt-3.5-turbo-16k"
 
-def getEmbeddingOppose(embedding, text):
-    context = index.query(
+
+def getContext(embedding, namespace, top_k=10):
+    return index.query(
         vector = embedding,
-        top_k = 10,
-        include_metadata = True
+        top_k = top_k,
+        include_metadata = True,
+        namespace=namespace
     )
-    
+
+def getContextOppose(context, text):   
     prompt = f"""Given the following statement: "{text}"
 
 The following context has been found during a semantic search: "{context}"
@@ -31,13 +34,7 @@ Can you analyze and summarize the main differences between the statement and the
     
     return ans['choices'][0]['message']['content']
 
-def getEmbeddingSupport(embedding, text):
-    context = index.query(
-        vector = embedding,
-        top_k = 10,
-        include_metadata = True
-    )
-    
+def getContextSupport(context, text):
     prompt = f"""Given the following statement: "{text}"
 
 The following context has been found during a semantic search: "{context}"
