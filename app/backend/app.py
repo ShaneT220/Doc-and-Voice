@@ -14,7 +14,7 @@ from azure.storage.blob import BlobServiceClient
 import pinecone
 from decouple import config
 from utils.embedding.transcript import get_embedding, addEmbeddingToPinecone
-from utils.openai.gpt3 import detectEmbeddingDiscrepency
+from utils.openai.gpt3 import getEmbeddingSupport,getAudioSummarize,getEmbeddingOppose
 from werkzeug.utils import secure_filename
 
 # Replace these with your own values, either in environment variables or directly here
@@ -128,24 +128,74 @@ def chat():
 #         openai_token = azure_credential.get_token("https://cognitiveservices.azure.com/.default")
 #         openai.api_key = openai_token.token
 
-@app.route("/processTranscript", methods=["POST"])
-def processTranscript():
+@app.route("/processOppose", methods=["POST"])
+def processOppose():
     try:
         transcript = request.json["recorded_text"]
         embedding = get_embedding(transcript)
 
-        #We get the discrepency before adding it to pinecone to not get the source embedding
-        output = detectEmbeddingDiscrepency(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        #We get the Oppose before adding it to pinecone to not get the source embedding
+        output = getEmbeddingOppose(embedding,transcript) #see if the claims in the embedding conflicts with anything
 
         #We now add it to pinecone
         addEmbeddingToPinecone(embedding,transcript)
         r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
         return  jsonify(r)
     except Exception as e:
-        logging.exception("Exception in /processTranscript")
+        logging.exception("Exception in /processOppose")
         return jsonify({"error": str(e)}), 500
     
-    
+@app.route("/processSupport", methods=["POST"])
+def processSupport():
+    try:
+        transcript = request.json["recorded_text"]
+        embedding = get_embedding(transcript)
 
+        #We get the Oppose before adding it to pinecone to not get the source embedding
+        output = getEmbeddingSupport(embedding,transcript) #see if the claims in the embedding conflicts with anything
+
+        #We now add it to pinecone
+        addEmbeddingToPinecone(embedding,transcript)
+        r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
+        return  jsonify(r)
+    except Exception as e:
+        logging.exception("Exception in /processSummarize")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/processSummarize", methods=["POST"])
+def processSummarize():
+    try:
+        transcript = request.json["recorded_text"]
+        embedding = get_embedding(transcript)
+
+        #We get the Oppose before adding it to pinecone to not get the source embedding
+        output = getAudioSummarize(transcript) #see if the claims in the embedding conflicts with anything
+
+        #We now add it to pinecone
+        addEmbeddingToPinecone(embedding,transcript)
+        r =  {"data_points": "", "answer": output, "thoughts": f"Question:<br><br><br>Prompt:<br>"}
+        return  jsonify(r)
+    except Exception as e:
+        logging.exception("Exception in /processSummarize")
+        return jsonify({"error": str(e)}), 500
+   
+@app.route("/processEverything", methods=["POST"])
+def processEverything():
+    try:
+        transcript = request.json["recorded_text"]
+        embedding = get_embedding(transcript)
+
+        oppose_output = getEmbeddingOppose(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        support_output = getEmbeddingSupport(embedding,transcript) #see if the claims in the embedding conflicts with anything
+        summarize_output = getAudioSummarize(transcript) #see if the claims in the embedding conflicts with anything
+
+        #We now add it to pinecone
+        addEmbeddingToPinecone(embedding,transcript)
+        
+        r =  {"oppose": oppose_output, "support":support_output, "summarize":summarize_output}
+        return  jsonify(r)
+    except Exception as e:
+        logging.exception("Exception in /processEverything")
+        return jsonify({"error": str(e)}), 500 
 if __name__ == "__main__":
     app.run(debug=1)
