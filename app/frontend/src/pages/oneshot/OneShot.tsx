@@ -11,7 +11,7 @@ import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 
-const MAX_TIME = 60
+const MAX_TIME = 60;
 
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -27,146 +27,138 @@ const OneShot = () => {
     const [activeCitation, setActiveCitation] = useState<string>();
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
     const recordingStop = useRef(false);
-    const [context, setContext] = useState<string[]>([""]) //takes the recording data and puts it into a string array
+    const [context, setContext] = useState<string[]>([""]); //takes the recording data and puts it into a string array
     const [timerTrigger, setTimerTrigger] = useState(true);
-    const [endpoint, setEndpoint] = useState("/processOppose")
-    
-    //This function is for making api requests for chat bot functionality
-    const makeApiRequest = async (question: string) => {
+    const [endpoint, setEndpoint] = useState("/processOppose");
 
-    };
-    
+    //This function is for making api requests for chat bot functionality
+    const makeApiRequest = async (question: string) => {};
+
     useEffect(() => {
         const sendNextTranscriptInQueue = async () => {
             try {
                 const result = context[0];
-                setContext((prev) => {
+                setContext(prev => {
                     const editedResult = ["", ...prev];
-                    return editedResult
-                })
+                    return editedResult;
+                });
                 const response = await sendTranscriptToAPI(result, endpoint);
-                setAnswer(response)
-            } catch (error) {
-    
-            }
-        }
-        if(context[0] !== "") {
+                setAnswer(response);
+            } catch (error) {}
+        };
+        if (context[0] !== "") {
             sendNextTranscriptInQueue();
         }
     }, [timerTrigger]);
 
-
     const SpeechRecognition = (window as any).speechRecognition || (window as any).webkitSpeechRecognition;
-    var recognition = new SpeechRecognition()
+    var recognition = new SpeechRecognition();
 
     try {
         recognition = new SpeechRecognition();
-        if(recognition != null) {
+        if (recognition != null) {
             recognition.continuous = false;
             recognition.lang = "en-US";
             recognition.interimResults = true;
             recognition.maxAlternatives = 1;
         }
-    } catch(err) {
-        console.log("SpeechRecognition not supported")
+    } catch (err) {
+        console.log("SpeechRecognition not supported");
         recognition = null;
     }
 
-//     const sendNextTranscriptInQueue = async () => {
-//         try {
-//             const result = context[0];
-//             setContext((prev) => {
-//                 const editedResult = ["", ...prev];
-//                 return editedResult
-//             })
-//             await sendTranscriptToAPI(result);
-//         } catch (error) {
+    //     const sendNextTranscriptInQueue = async () => {
+    //         try {
+    //             const result = context[0];
+    //             setContext((prev) => {
+    //                 const editedResult = ["", ...prev];
+    //                 return editedResult
+    //             })
+    //             await sendTranscriptToAPI(result);
+    //         } catch (error) {
 
-//         }
-//         if (contextQueueRef.current.length > 0) {
-//             const currentTranscript = contextQueueRef.current[0];
-//             // console.log("Sending Transcript: " + currentTranscript)
-//             try {
-//                 // Send the recorded audio to the API and wait for the promise to resolve
-//                 await sendTranscriptToAPI(currentTranscript);
-                
-//                 // Remove the sent transcript from the queue
-//                 contextQueueRef.current.shift();
-//                 setQueueLength(contextQueueRef.current.length);
-    
-//                 // If there are more transcripts in the queue, send the next one
-//                 sendNextTranscriptInQueue();
-//             } catch (error) {
-//                 console.error('Failed to send transcript to API:', error);
-//                 // Handle the error, if needed
-//             }
-//         }
-// };
+    //         }
+    //         if (contextQueueRef.current.length > 0) {
+    //             const currentTranscript = contextQueueRef.current[0];
+    //             // console.log("Sending Transcript: " + currentTranscript)
+    //             try {
+    //                 // Send the recorded audio to the API and wait for the promise to resolve
+    //                 await sendTranscriptToAPI(currentTranscript);
 
-    function timingAudio(){
+    //                 // Remove the sent transcript from the queue
+    //                 contextQueueRef.current.shift();
+    //                 setQueueLength(contextQueueRef.current.length);
+
+    //                 // If there are more transcripts in the queue, send the next one
+    //                 sendNextTranscriptInQueue();
+    //             } catch (error) {
+    //                 console.error('Failed to send transcript to API:', error);
+    //                 // Handle the error, if needed
+    //             }
+    //         }
+    // };
+
+    function timingAudio() {
         console.log("media recorder start");
         timeIntervalRef.current = setInterval(() => {
-        elapsedTimeRef.current += 1;
-        if (elapsedTimeRef.current >= MAX_TIME) {
-            setTimerTrigger((prev) => !prev)
-           elapsedTimeRef.current = 0;
-        }
-    }, 1000);
-}
-
+            elapsedTimeRef.current += 1;
+            if (elapsedTimeRef.current >= MAX_TIME) {
+                setTimerTrigger(prev => !prev);
+                elapsedTimeRef.current = 0;
+            }
+        }, 1000);
+    }
 
     const onResult = () => {
         recognition.onresult = (event: any) => {
-            if(!recordingStop.current) {
-                setContext((prevContext) => {
-                    let finalResult = [""]
-                    if(event.results[0].isFinal) {
-                        finalResult = [prevContext[0] + " " + event.results[event.results.length - 1][0].transcript]
+            if (!recordingStop.current) {
+                setContext(prevContext => {
+                    let finalResult = [""];
+                    if (event.results[0].isFinal) {
+                        finalResult = [prevContext[0] + " " + event.results[event.results.length - 1][0].transcript];
                     } else {
-                        finalResult = [prevContext[0].trim(), " " + event.results[event.results.length - 1][0].transcript]
+                        finalResult = [prevContext[0].trim(), " " + event.results[event.results.length - 1][0].transcript];
                     }
-                    return finalResult
-                })
+                    return finalResult;
+                });
             }
-        }
+        };
         recognition.onend = () => {
-            if(recordingStop.current) {
+            if (recordingStop.current) {
                 recognition.stop();
             } else {
                 recognition.start();
             }
-        }
-    }
-    
+        };
+    };
+
     //experimental function to stop recorder
     function stopTimingAudio() {
         console.log("media recorder stop");
-        clearInterval(timeIntervalRef.current); //this should stop the timer of the current interval we are working with 
-        elapsedTimeRef.current = 0;// reset the elapsed time to zero
-    
+        clearInterval(timeIntervalRef.current); //this should stop the timer of the current interval we are working with
+        elapsedTimeRef.current = 0; // reset the elapsed time to zero
     }
     const startRecording = () => {
-        if(recognition == null) {
-            console.log("SpeechRecognition not support")
-            return
+        if (recognition == null) {
+            console.log("SpeechRecognition not support");
+            return;
         }
         recordingStop.current = false;
         recognition.start();
         timingAudio();
         onResult();
     };
-      
+
     const stopRecording = () => {
-        if(recognition == null) {
-            console.log("SpeechRecognition not supported")
+        if (recognition == null) {
+            console.log("SpeechRecognition not supported");
             return;
         }
         recordingStop.current = true;
         recognition.stop();
-        setIsRecording(false)
-        stopTimingAudio() // use function to stop recording
-    }
-        
+        setIsRecording(false);
+        stopTimingAudio(); // use function to stop recording
+    };
 
     const onShowCitation = (citation: string) => {
         if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab) {
@@ -199,16 +191,17 @@ const OneShot = () => {
                         />
                     </div> */}
                     <div className={styles.oneShotMicButton}>
-                        <IconButton onClick={isRecording ? (stopRecording) : (
-                            () => {
-                                setIsRecording(true);
-                                startRecording();
-                            })}>
-                            { isRecording ? (
-                                <Mic48Filled/>
-                                ):(
-                                <Mic48Regular/>
-                            )}
+                        <IconButton
+                            onClick={
+                                isRecording
+                                    ? stopRecording
+                                    : () => {
+                                          setIsRecording(true);
+                                          startRecording();
+                                      }
+                            }
+                        >
+                            {isRecording ? <Mic48Regular /> : <Mic48Filled />}
                         </IconButton>
                     </div>
                 </div>
@@ -243,7 +236,7 @@ const OneShot = () => {
                 isFooterAtBottom={true}
             >
                 <Label>Find:</Label>
-                <RadioGroup value={endpoint} onChange={((_, data) => setEndpoint(data.value))}>
+                <RadioGroup value={endpoint} onChange={(_, data) => setEndpoint(data.value)}>
                     <Radio value="/processOppose" label="Oppose" />
                     <Radio value="/processSupport" label="Support" />
                     <Radio value="/processSummarize" label="Summarize" />
