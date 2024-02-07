@@ -52,23 +52,28 @@ Answer:
         exclude_category = overrides.get("exclude_category") or None
         filter = "category ne '{}'".format(exclude_category.replace("'", "''")) if exclude_category else None
 
-        if overrides.get("semantic_ranker"):
-            r = self.search_client.search(q, 
-                                          filter=filter,
-                                          query_type=QueryType.SEMANTIC, 
-                                          query_language="en-us", 
-                                          query_speller="lexicon", 
-                                          semantic_configuration_name="default", 
-                                          top=top, 
-                                          query_caption="extractive|highlight-false" if use_semantic_captions else None)
-        else:
-            r = self.search_client.search(q, filter=filter, top=top)
+        # Replace with Pinecone search
+        # Need to take question and make a embedding to search on
+        # if overrides.get("semantic_ranker"):
+        #     r = self.search_client.search(q, 
+        #                                   filter=filter,
+        #                                   query_type=QueryType.SEMANTIC, 
+        #                                   query_language="en-us", 
+        #                                   query_speller="lexicon", 
+        #                                   semantic_configuration_name="default", 
+        #                                   top=top, 
+        #                                   query_caption="extractive|highlight-false" if use_semantic_captions else None)
+        # else:
+        #     r = self.search_client.search(q, filter=filter, top=top)
+
+        # Break up code so that we can correctly see what is being placed with in results
         if use_semantic_captions:
             results = [doc[self.sourcepage_field] + ": " + nonewlines(" . ".join([c.text for c in doc['@search.captions']])) for doc in r]
         else:
             results = [doc[self.sourcepage_field] + ": " + nonewlines(doc[self.content_field]) for doc in r]
         content = "\n".join(results)
 
+        # Switch out completions for gpt4 
         prompt = (overrides.get("prompt_template") or self.template).format(q=q, retrieved=content)
         completion = openai.Completion.create(
             engine=self.openai_deployment, 

@@ -29,6 +29,13 @@ export type AskResponse = {
     error?: string;
 };
 
+export type EverythingResponse = {
+    oppose: string;
+    summarize: string;
+    support: string;
+    error?: string;
+};
+
 export type ChatTurn = {
     user: string;
     bot?: string;

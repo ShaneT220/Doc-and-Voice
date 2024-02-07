@@ -5,3 +5,7 @@ openai==0.26.4
 azure-search-documents==11.4.0b3
 azure-storage-blob==12.14.1
 python-decouple
+Werkzeug
+pinecone-client
+ffmpeg-python
+pydub
